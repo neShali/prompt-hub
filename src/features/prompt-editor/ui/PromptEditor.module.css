@@ -1,0 +1,94 @@
+.editor {
+  display: grid;
+  gap: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header label {
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.header span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 4px;
+}
+
+.toolbar button {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 11px;
+  color: var(--color-accent-dark);
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.toolbar button:hover {
+  border-color: rgba(47, 111, 94, 0.32);
+  background: var(--color-accent-soft);
+}
+
+.toolbar button:focus-visible,
+.textarea:focus-visible {
+  outline: 3px solid rgba(47, 111, 94, 0.28);
+  outline-offset: 2px;
+}
+
+.textarea {
+  width: 100%;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  padding: 14px 15px;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.84);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.textarea:focus {
+  border-color: rgba(47, 111, 94, 0.52);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(47, 111, 94, 0.12);
+}
+
+.textarea[aria-invalid='true'] {
+  border-color: rgba(186, 68, 68, 0.72);
+}
+
+.error {
+  margin: 0;
+  color: #9a2f2f;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 620px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}

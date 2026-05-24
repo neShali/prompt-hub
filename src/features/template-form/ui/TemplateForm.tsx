@@ -3,9 +3,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type ChangeEvent, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
+import { PromptEditor } from '@/features/prompt-editor/ui/PromptEditor';
 import { saveTemplate } from '@/features/template-form/model/storage';
 import {
   templateFormSchema,
@@ -24,6 +25,12 @@ const defaultValues: TTemplateFormValues = {
   isPublic: false,
 };
 
+type TTemplateTextField = Exclude<keyof TTemplateFormValues, 'isPublic'>;
+
+type TTemplateFieldEvent = ChangeEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>;
+
 type TTemplateFormProps = {
   mode: 'create' | 'edit';
   templateId?: string;
@@ -33,31 +40,50 @@ type TTemplateFormProps = {
 export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormProps) {
   const router = useRouter();
   const [submitMessage, setSubmitMessage] = useState('');
+  const [formSnapshot, setFormSnapshot] = useState<TTemplateFormValues>(
+    initialValues ?? defaultValues
+  );
 
   const {
     register,
     handleSubmit,
-    setValue,
-    getValues,
+    control,
     watch,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm<TTemplateFormValues>({
     resolver: zodResolver(templateFormSchema),
     mode: 'onChange',
     defaultValues: initialValues ?? defaultValues,
   });
 
-  const promptText = watch('promptText');
+  const formValues = watch();
+  const promptText = formValues.promptText;
+  const isFormValid = templateFormSchema.safeParse(formSnapshot).success;
 
-  const insertSnippet = (snippet: string) => {
-    const currentValue = getValues('promptText');
-    const prefix = currentValue.trim().length > 0 ? '\n\n' : '';
+  const updateTextField =
+    (field: TTemplateTextField) => (event: TTemplateFieldEvent) => {
+      const value = event.target.value;
 
-    setValue('promptText', `${currentValue}${prefix}${snippet}`, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
+      setFormSnapshot((currentValues) => ({
+        ...currentValues,
+        [field]: value,
+      }));
+    };
+
+  const updatePublicState = (event: ChangeEvent<HTMLInputElement>) => {
+    const isPublic = event.target.checked;
+
+    setFormSnapshot((currentValues) => ({
+      ...currentValues,
+      isPublic,
+    }));
+  };
+
+  const updatePromptText = (value: string) => {
+    setFormSnapshot((currentValues) => ({
+      ...currentValues,
+      promptText: value,
+    }));
   };
 
   const onSubmit = async (values: TTemplateFormValues) => {
@@ -85,7 +111,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               id="title"
               placeholder="Например: Контент-план для запуска продукта"
               type="text"
-              {...register('title')}
+              {...register('title', { onChange: updateTextField('title') })}
             />
             {errors.title ? (
               <p className={styles.error} role="alert">
@@ -101,7 +127,9 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               id="description"
               placeholder="Коротко объясните, для какой задачи подходит шаблон"
               rows={4}
-              {...register('description')}
+              {...register('description', {
+                onChange: updateTextField('description'),
+              })}
             />
             {errors.description ? (
               <p className={styles.error} role="alert">
@@ -116,7 +144,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               <select
                 aria-invalid={Boolean(errors.category)}
                 id="category"
-                {...register('category')}
+                {...register('category', { onChange: updateTextField('category') })}
               >
                 {promptCategories.map((category) => (
                   <option key={category.value} value={category.value}>
@@ -137,61 +165,42 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
                 id="variables"
                 placeholder="product, audience, goal"
                 type="text"
-                {...register('variables')}
+                {...register('variables', { onChange: updateTextField('variables') })}
               />
             </div>
           </div>
 
-          <div className={styles.field}>
-            <div className={styles.editorHeader}>
-              <label htmlFor="promptText">Текст промпта</label>
-              <span>{promptText.length} символов</span>
-            </div>
-
-            <div className={styles.toolbar} aria-label="Быстрые вставки редактора">
-              <button type="button" onClick={() => insertSnippet('## Heading')}>
-                Заголовок
-              </button>
-              <button type="button" onClick={() => insertSnippet('{{variable}}')}>
-                Переменная
-              </button>
-              <button type="button" onClick={() => insertSnippet('<context></context>')}>
-                XML-тег
-              </button>
-              <button type="button" onClick={() => insertSnippet('→ следующий шаг')}>
-                Стрелка
-              </button>
-              <button type="button" onClick={() => insertSnippet('+++Format')}>
-                Декоратор
-              </button>
-            </div>
-
-            <textarea
-              aria-invalid={Boolean(errors.promptText)}
-              className={styles.promptTextarea}
-              id="promptText"
-              placeholder="Опишите роль модели, контекст, задачу и формат ответа"
-              rows={14}
-              {...register('promptText')}
-            />
-            {errors.promptText ? (
-              <p className={styles.error} role="alert">
-                {errors.promptText.message}
-              </p>
-            ) : null}
-          </div>
+          <Controller
+            control={control}
+            name="promptText"
+            render={({ field }) => (
+              <PromptEditor
+                error={errors.promptText?.message}
+                id="promptText"
+                label="Текст промпта"
+                value={field.value}
+                onChange={(value) => {
+                  field.onChange(value);
+                  updatePromptText(value);
+                }}
+              />
+            )}
+          />
         </div>
 
         <aside className={styles.sidePanel}>
           <div className={styles.panelCard}>
             <h2>Настройки публикации</h2>
             <label className={styles.checkbox}>
-              <input type="checkbox" {...register('isPublic')} />
+              <input
+                type="checkbox"
+                {...register('isPublic', { onChange: updatePublicState })}
+              />
               <span>Сделать шаблон публичным</span>
             </label>
             <p>
-              Публичные шаблоны будут доступны в каталоге после модерации. Пока данные
-              сохраняются локально в браузере.
+              Публичные шаблоны будут доступны в каталоге после публикации.
+              Это удобно, если шаблоном нужно поделиться с другими пользователями.
             </p>
           </div>
 
@@ -201,14 +210,14 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               <li>Есть понятная роль модели</li>
               <li>Описан контекст задачи</li>
               <li>Указан формат ответа</li>
-              <li>Переменные оформлены как {'{{var}}'}</li>
+              <li>Переменные оформлены в формате {'{{var}}'}</li>
             </ul>
           </div>
         </aside>
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.submitButton} disabled={!isValid || isSubmitting} type="submit">
+        <button className={styles.submitButton} disabled={!isFormValid || isSubmitting} type="submit">
           {isSubmitting
             ? 'Сохраняем'
             : mode === 'create'

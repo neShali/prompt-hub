@@ -8,7 +8,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'PromptHub',
   description:
-    'Учебный сервис для изучения промпт-инжиниринга, создания шаблонов и работы с каталогом промптов.',
+    'Сервис для изучения промпт-инжиниринга, создания шаблонов и работы с каталогом промптов.',
 };
 
 type TRootLayoutProps = {

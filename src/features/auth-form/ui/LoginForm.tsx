@@ -3,44 +3,60 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
   loginFormSchema,
   TLoginFormValues,
 } from '@/features/auth-form/model/schemas';
+import { consumeNextPath, setCurrentUser } from '@/features/auth-form/model/session';
 
 import styles from './AuthForm.module.css';
+
+const defaultValues: TLoginFormValues = {
+  email: '',
+  password: '',
+};
+
+type TLoginTextField = keyof TLoginFormValues;
 
 export function LoginForm() {
   const router = useRouter();
   const [submitMessage, setSubmitMessage] = useState('');
+  const [formSnapshot, setFormSnapshot] = useState<TLoginFormValues>(defaultValues);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm<TLoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     mode: 'onChange',
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues,
   });
+
+  const isFormValid = loginFormSchema.safeParse(formSnapshot).success;
+
+  const updateField = (field: TLoginTextField) => (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+
+    setFormSnapshot((currentValues) => ({
+      ...currentValues,
+      [field]: value,
+    }));
+  };
 
   const onSubmit = async (values: TLoginFormValues) => {
     setSubmitMessage('');
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
 
-    window.localStorage.setItem(
-      'prompt-hub:user',
-      JSON.stringify({ email: values.email, authorizedAt: new Date().toISOString() })
-    );
+    setCurrentUser({ email: values.email, authorizedAt: new Date().toISOString() });
 
-    setSubmitMessage('Вход выполнен. Сейчас откроется личный кабинет.');
-    router.push('/profile');
+    const nextPath = consumeNextPath();
+
+    setSubmitMessage('Вход выполнен. Открываем личный кабинет.');
+    router.push(nextPath ?? '/profile');
   };
 
   return (
@@ -53,7 +69,7 @@ export function LoginForm() {
           id="email"
           placeholder="name@example.com"
           type="email"
-          {...register('email')}
+          {...register('email', { onChange: updateField('email') })}
         />
         {errors.email ? (
           <p className={styles.error} role="alert">
@@ -70,7 +86,7 @@ export function LoginForm() {
           id="password"
           placeholder="Минимум 6 символов"
           type="password"
-          {...register('password')}
+          {...register('password', { onChange: updateField('password') })}
         />
         {errors.password ? (
           <p className={styles.error} role="alert">
@@ -79,7 +95,7 @@ export function LoginForm() {
         ) : null}
       </div>
 
-      <button className={styles.submitButton} disabled={!isValid || isSubmitting} type="submit">
+      <button className={styles.submitButton} disabled={!isFormValid || isSubmitting} type="submit">
         {isSubmitting ? 'Проверяем данные' : 'Войти'}
       </button>
 

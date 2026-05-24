@@ -3,50 +3,67 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
   registerFormSchema,
   TRegisterFormValues,
 } from '@/features/auth-form/model/schemas';
+import { consumeNextPath, setCurrentUser } from '@/features/auth-form/model/session';
 
 import styles from './AuthForm.module.css';
+
+const defaultValues: TRegisterFormValues = {
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+};
+
+type TRegisterTextField = keyof TRegisterFormValues;
 
 export function RegisterForm() {
   const router = useRouter();
   const [submitMessage, setSubmitMessage] = useState('');
+  const [formSnapshot, setFormSnapshot] = useState<TRegisterFormValues>(defaultValues);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
   } = useForm<TRegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
     mode: 'onChange',
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    },
+    defaultValues,
   });
+
+  const isFormValid = registerFormSchema.safeParse(formSnapshot).success;
+
+  const updateField =
+    (field: TRegisterTextField) => (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+
+      setFormSnapshot((currentValues) => ({
+        ...currentValues,
+        [field]: value,
+      }));
+    };
 
   const onSubmit = async (values: TRegisterFormValues) => {
     setSubmitMessage('');
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
 
-    window.localStorage.setItem(
-      'prompt-hub:user',
-      JSON.stringify({
-        name: values.name,
-        email: values.email,
-        authorizedAt: new Date().toISOString(),
-      })
-    );
+    setCurrentUser({
+      name: values.name,
+      email: values.email,
+      authorizedAt: new Date().toISOString(),
+    });
 
-    setSubmitMessage('Аккаунт создан. Сейчас откроется личный кабинет.');
-    router.push('/profile');
+    const nextPath = consumeNextPath();
+
+    setSubmitMessage('Аккаунт создан. Открываем личный кабинет.');
+    router.push(nextPath ?? '/profile');
   };
 
   return (
@@ -59,7 +76,7 @@ export function RegisterForm() {
           id="name"
           placeholder="Ваше имя"
           type="text"
-          {...register('name')}
+          {...register('name', { onChange: updateField('name') })}
         />
         {errors.name ? (
           <p className={styles.error} role="alert">
@@ -76,7 +93,7 @@ export function RegisterForm() {
           id="email"
           placeholder="name@example.com"
           type="email"
-          {...register('email')}
+          {...register('email', { onChange: updateField('email') })}
         />
         {errors.email ? (
           <p className={styles.error} role="alert">
@@ -93,7 +110,7 @@ export function RegisterForm() {
           id="password"
           placeholder="Минимум 6 символов"
           type="password"
-          {...register('password')}
+          {...register('password', { onChange: updateField('password') })}
         />
         {errors.password ? (
           <p className={styles.error} role="alert">
@@ -110,7 +127,9 @@ export function RegisterForm() {
           id="confirmPassword"
           placeholder="Введите пароль ещё раз"
           type="password"
-          {...register('confirmPassword')}
+          {...register('confirmPassword', {
+            onChange: updateField('confirmPassword'),
+          })}
         />
         {errors.confirmPassword ? (
           <p className={styles.error} role="alert">
@@ -119,7 +138,7 @@ export function RegisterForm() {
         ) : null}
       </div>
 
-      <button className={styles.submitButton} disabled={!isValid || isSubmitting} type="submit">
+      <button className={styles.submitButton} disabled={!isFormValid || isSubmitting} type="submit">
         {isSubmitting ? 'Создаём аккаунт' : 'Зарегистрироваться'}
       </button>
 

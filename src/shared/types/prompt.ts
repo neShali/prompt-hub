@@ -25,6 +25,8 @@ export type TPrompt = {
 
 export type TSearchResponse = {
   results: TPrompt[];
-  suggestions: string[];
+  suggestions?: string[];
   total: number;
+  query?: string;
+  category?: TPromptCategory | '';
 };
