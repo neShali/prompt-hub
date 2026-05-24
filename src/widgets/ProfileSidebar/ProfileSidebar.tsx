@@ -7,6 +7,19 @@ import { profileNavigation } from '@/shared/config/navigation';
 
 import styles from './ProfileSidebar.module.css';
 
+const isProfileNavItemActive = (pathname: string, href: string) => {
+  if (pathname === href) {
+    return true;
+  }
+
+  const isTemplateEditPage =
+    href === '/profile/templates' &&
+    pathname.startsWith('/profile/templates/') &&
+    pathname.endsWith('/edit');
+
+  return isTemplateEditPage;
+};
+
 export function ProfileSidebar() {
   const pathname = usePathname();
 
@@ -22,12 +35,11 @@ export function ProfileSidebar() {
 
       <nav className={styles.nav} aria-label="Навигация личного кабинета">
         {profileNavigation.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/profile' && pathname.startsWith(item.href));
+          const isActive = isProfileNavItemActive(pathname, item.href);
 
           return (
             <Link
+              aria-current={isActive ? 'page' : undefined}
               className={isActive ? `${styles.link} ${styles.active}` : styles.link}
               href={item.href}
               key={item.href}

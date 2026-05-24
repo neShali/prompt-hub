@@ -1,24 +1,30 @@
-import { RoutePage } from '@/shared/ui/RoutePage/RoutePage';
+import { RegisterForm } from '@/features/auth-form/ui/RegisterForm';
+import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
+
+import styles from '../auth.module.css';
 
 export default function RegisterPage() {
   return (
-    <RoutePage
-      badge="Авторизация"
-      title="Регистрация"
-      description="Страница создания аккаунта. На следующем этапе здесь появится форма регистрации с клиентской валидацией."
-      contentItems={[
-        'форма регистрации',
-        'поле имени',
-        'поле email',
-        'поле пароля',
-        'подтверждение пароля',
-        'ссылка на вход',
-      ]}
-      entryPoints={['страница входа', 'header', 'главная страница']}
-      exitPoints={[
-        { href: '/profile', label: 'Перейти в кабинет', variant: 'primary' },
-        { href: '/login', label: 'У меня уже есть аккаунт' },
-      ]}
-    />
+    <section className="pageSection">
+      <div className="container">
+        <Breadcrumbs />
+
+        <div className={styles.layout}>
+          <div className={styles.hero}>
+            <span className="badge">Регистрация</span>
+            <h1>Создание аккаунта</h1>
+            <p>
+              Форма показывает клиентскую валидацию, понятные сообщения об ошибках
+              и блокировку отправки, пока данные заполнены некорректно.
+            </p>
+          </div>
+
+          <div className={styles.formCard}>
+            <h2>Заполните форму</h2>
+            <RegisterForm />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

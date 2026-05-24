@@ -1,0 +1,93 @@
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  padding: 14px 15px;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.82);
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.field input:focus {
+  border-color: rgba(47, 111, 94, 0.52);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(47, 111, 94, 0.12);
+}
+
+.field input[aria-invalid='true'] {
+  border-color: rgba(186, 68, 68, 0.72);
+}
+
+.error,
+.success,
+.bottomText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.error {
+  color: #9a2f2f;
+}
+
+.success {
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--color-accent-dark);
+  background: var(--color-accent-soft);
+  font-weight: 700;
+}
+
+.submitButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  color: #ffffff;
+  background: var(--color-accent);
+  cursor: pointer;
+  font-weight: 850;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background 160ms ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--color-accent-dark);
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.bottomText {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.bottomText a {
+  color: var(--color-accent-dark);
+  font-weight: 800;
+}
