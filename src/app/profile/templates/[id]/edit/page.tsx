@@ -1,4 +1,7 @@
-import { RoutePage } from '@/shared/ui/RoutePage/RoutePage';
+import { EditTemplateFormLoader } from '@/features/template-form/ui/EditTemplateFormLoader';
+import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
+
+import styles from '../../templates-page.module.css';
 
 type TEditTemplatePageProps = {
   params: Promise<{
@@ -10,26 +13,21 @@ export default async function EditTemplatePage({ params }: TEditTemplatePageProp
   const { id } = await params;
 
   return (
-    <RoutePage
-      badge="Редактор"
-      title="Редактирование шаблона"
-      description={`Страница редактирования существующего шаблона. На следующих этапах здесь появится форма с редактором промпта. Текущий id: ${id}.`}
-      contentItems={[
-        'форма редактирования',
-        'текущие данные шаблона',
-        'редактор промпта',
-        'предпросмотр',
-        'сохранение изменений',
-      ]}
-      entryPoints={[
-        'мои шаблоны',
-        'после создания шаблона',
-        'личный кабинет',
-      ]}
-      exitPoints={[
-        { href: '/profile/templates', label: 'Вернуться к шаблонам', variant: 'primary' },
-        { href: '/catalog', label: 'Открыть каталог' },
-      ]}
-    />
+    <section>
+      <Breadcrumbs />
+
+      <div className={styles.header}>
+        <span className="badge">Редактирование</span>
+        <h1>Редактирование шаблона</h1>
+        <p>
+          Страница использует ту же форму и схему валидации, что и создание шаблона.
+          Если шаблон найден в localStorage, форма подставит сохранённые значения.
+        </p>
+      </div>
+
+      <div className={styles.content}>
+        <EditTemplateFormLoader templateId={id} />
+      </div>
+    </section>
   );
 }

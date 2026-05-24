@@ -1,4 +1,7 @@
-import { RoutePage } from '@/shared/ui/RoutePage/RoutePage';
+import { notFound } from 'next/navigation';
+
+import { PromptDetail } from '@/entities/prompt/ui/PromptDetail';
+import { getPromptBySlug } from '@/shared/mock/prompts';
 
 type TPromptDetailsPageProps = {
   params: Promise<{
@@ -8,31 +11,11 @@ type TPromptDetailsPageProps = {
 
 export default async function PromptDetailsPage({ params }: TPromptDetailsPageProps) {
   const { slug } = await params;
+  const prompt = getPromptBySlug(slug);
 
-  return (
-    <RoutePage
-      badge="Детальная страница"
-      title="Страница промпта"
-      description={`Здесь пользователь изучает выбранный промпт, копирует его, смотрит описание, переменные и связанные шаблоны. Текущий slug: ${slug}.`}
-      contentItems={[
-        'название промпта',
-        'описание',
-        'текст промпта',
-        'переменные',
-        'категория',
-        'кнопка копирования',
-        'кнопка добавления в избранное',
-      ]}
-      entryPoints={[
-        'каталог промптов',
-        'страница поиска',
-        'избранное',
-        'публичная ссылка на шаблон',
-      ]}
-      exitPoints={[
-        { href: '/catalog', label: 'Вернуться в каталог', variant: 'primary' },
-        { href: '/profile/favorites', label: 'Перейти в избранное' },
-      ]}
-    />
-  );
+  if (!prompt) {
+    notFound();
+  }
+
+  return <PromptDetail prompt={prompt} />;
 }
