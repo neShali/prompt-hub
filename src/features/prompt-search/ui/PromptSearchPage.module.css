@@ -191,3 +191,9 @@
     flex-direction: column;
   }
 }
+
+.grid,
+.results {
+  content-visibility: auto;
+  contain-intrinsic-size: 640px;
+}

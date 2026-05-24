@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { PromptCard } from '@/entities/prompt/ui/PromptCard';
 import { useDebouncedValue } from '@/shared/lib/debounce/useDebouncedValue';
@@ -204,20 +204,32 @@ export function PromptSearchPage() {
     return `Найдено шаблонов: ${data.total}`;
   }, [data, error, hasSearchParams, isLoading]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const renderedResults = useMemo(() => {
+    if (!data?.results.length) return null;
 
-    if (query.trim().length > 0 && query.trim().length < MIN_QUERY_LENGTH) {
-      return;
-    }
+    return data.results.map((prompt) => <PromptCard key={prompt.id} prompt={prompt} />);
+  }, [data]);
 
-    router.push(createSearchUrl({ query, category }));
-  };
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    router.push(createSearchUrl({ query: suggestion, category }));
-  };
+      if (query.trim().length > 0 && query.trim().length < MIN_QUERY_LENGTH) {
+        return;
+      }
+
+      router.push(createSearchUrl({ query, category }));
+    },
+    [category, query, router]
+  );
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      setQuery(suggestion);
+      router.push(createSearchUrl({ query: suggestion, category }));
+    },
+    [category, router]
+  );
 
   return (
     <section className="pageSection">
@@ -321,12 +333,8 @@ export function PromptSearchPage() {
             </div>
           ) : null}
 
-          {!isLoading && !error && data && data.results.length > 0 ? (
-            <div className={styles.grid}>
-              {data.results.map((prompt) => (
-                <PromptCard key={prompt.id} prompt={prompt} />
-              ))}
-            </div>
+          {!isLoading && !error && renderedResults ? (
+            <div className={styles.grid}>{renderedResults}</div>
           ) : null}
         </section>
       </div>

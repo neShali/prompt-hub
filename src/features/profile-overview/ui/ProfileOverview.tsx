@@ -9,7 +9,7 @@ import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
 
 import styles from './ProfileOverview.module.css';
 
-const getDisplayName = (user: TAuthUser | null) => user?.name || user?.email || 'Пользователь';
+const getUserName = (user: TAuthUser | null) => user?.name || 'Пользователь';
 
 export function ProfileOverview() {
   const [user, setUser] = useState<TAuthUser | null>(null);
@@ -29,11 +29,12 @@ export function ProfileOverview() {
       <div className={styles.hero}>
         <div>
           <span className="badge">Личный кабинет</span>
-          <h1>{getDisplayName(user)}</h1>
+          <h1>Личный кабинет</h1>
           <p>
-            Управляйте шаблонами, возвращайтесь к сохранённым промптам и создавайте
-            новые заготовки для повторяющихся задач.
+            {getUserName(user)}, управляйте шаблонами, возвращайтесь к сохранённым
+            промптам и создавайте новые заготовки для повторяющихся задач.
           </p>
+          {user?.email ? <p className={styles.userEmail}>{user.email}</p> : null}
         </div>
 
         <div className={styles.stats} aria-label="Статистика аккаунта">

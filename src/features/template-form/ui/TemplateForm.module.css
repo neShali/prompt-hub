@@ -237,3 +237,15 @@
     gap: 6px;
   }
 }
+
+.editorSkeleton {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.62);
+  font-weight: 760;
+}

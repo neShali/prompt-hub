@@ -107,3 +107,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+.grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 520px;
+}
