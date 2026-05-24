@@ -1,12 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   getSavedTemplates,
   TSavedTemplate,
 } from '@/features/template-form/model/storage';
+import {
+  getPromptSyntaxSegments,
+  type TPromptSyntaxType,
+} from '@/shared/lib/prompt-syntax/promptSyntax';
 import { promptCategories } from '@/shared/mock/prompts';
 import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
 
@@ -14,6 +18,26 @@ import styles from './MyTemplates.module.css';
 
 const getCategoryLabel = (category: string) =>
   promptCategories.find((item) => item.value === category)?.label ?? category;
+
+const getSegmentClassName = (type?: TPromptSyntaxType) => {
+  if (!type) return undefined;
+
+  return `${styles.syntaxToken} ${styles[type]}`;
+};
+
+function TemplatePromptPreview({ value }: { value: string }) {
+  const segments = useMemo(() => getPromptSyntaxSegments(value), [value]);
+
+  return (
+    <pre className={styles.promptPreview} aria-label="Фрагмент шаблона с подсветкой синтаксиса">
+      {segments.slice(0, 18).map((segment, index) => (
+        <span className={getSegmentClassName(segment.type)} key={`${segment.value}-${index}`}>
+          {segment.value}
+        </span>
+      ))}
+    </pre>
+  );
+}
 
 export function MyTemplates() {
   const [templates, setTemplates] = useState<TSavedTemplate[]>([]);
@@ -56,6 +80,7 @@ export function MyTemplates() {
               <span>{getCategoryLabel(template.category)}</span>
               <h2>{template.title}</h2>
               <p>{template.description}</p>
+              <TemplatePromptPreview value={template.promptText} />
               <small>
                 Обновлено:{' '}
                 {new Intl.DateTimeFormat('ru-RU', {

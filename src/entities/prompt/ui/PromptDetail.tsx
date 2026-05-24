@@ -1,8 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import {
+  getPromptSyntaxSegments,
+  type TPromptSyntaxType,
+} from '@/shared/lib/prompt-syntax/promptSyntax';
 import { TPrompt } from '@/shared/types/prompt';
 import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
 
@@ -12,8 +16,15 @@ type TPromptDetailProps = {
   prompt: TPrompt;
 };
 
+const getSegmentClassName = (type?: TPromptSyntaxType) => {
+  if (!type) return undefined;
+
+  return `${styles.syntaxToken} ${styles[type]}`;
+};
+
 export function PromptDetail({ prompt }: TPromptDetailProps) {
   const [copyStatus, setCopyStatus] = useState('');
+  const syntaxSegments = useMemo(() => getPromptSyntaxSegments(prompt.prompt), [prompt.prompt]);
 
   const handleCopy = async () => {
     try {
@@ -48,7 +59,13 @@ export function PromptDetail({ prompt }: TPromptDetailProps) {
                   Скопировать
                 </button>
               </div>
-              <pre>{prompt.prompt}</pre>
+              <pre aria-label="Текст промпта с подсветкой синтаксиса">
+                {syntaxSegments.map((segment, index) => (
+                  <span className={getSegmentClassName(segment.type)} key={`${segment.value}-${index}`}>
+                    {segment.value}
+                  </span>
+                ))}
+              </pre>
               {copyStatus ? (
                 <p className={styles.copyStatus} role="status" aria-live="polite">
                   {copyStatus}

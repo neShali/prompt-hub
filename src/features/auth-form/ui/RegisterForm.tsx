@@ -71,6 +71,7 @@ export function RegisterForm() {
       <div className={styles.field}>
         <label htmlFor="name">Имя</label>
         <input
+          aria-describedby={errors.name ? 'register-name-error' : undefined}
           aria-invalid={Boolean(errors.name)}
           autoComplete="name"
           id="name"
@@ -79,7 +80,7 @@ export function RegisterForm() {
           {...register('name', { onChange: updateField('name') })}
         />
         {errors.name ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="register-name-error" role="alert">
             {errors.name.message}
           </p>
         ) : null}
@@ -88,6 +89,7 @@ export function RegisterForm() {
       <div className={styles.field}>
         <label htmlFor="email">Email</label>
         <input
+          aria-describedby={errors.email ? 'register-email-error' : undefined}
           aria-invalid={Boolean(errors.email)}
           autoComplete="email"
           id="email"
@@ -96,7 +98,7 @@ export function RegisterForm() {
           {...register('email', { onChange: updateField('email') })}
         />
         {errors.email ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="register-email-error" role="alert">
             {errors.email.message}
           </p>
         ) : null}
@@ -105,6 +107,7 @@ export function RegisterForm() {
       <div className={styles.field}>
         <label htmlFor="password">Пароль</label>
         <input
+          aria-describedby={errors.password ? 'register-password-error' : undefined}
           aria-invalid={Boolean(errors.password)}
           autoComplete="new-password"
           id="password"
@@ -113,7 +116,7 @@ export function RegisterForm() {
           {...register('password', { onChange: updateField('password') })}
         />
         {errors.password ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="register-password-error" role="alert">
             {errors.password.message}
           </p>
         ) : null}
@@ -122,6 +125,7 @@ export function RegisterForm() {
       <div className={styles.field}>
         <label htmlFor="confirmPassword">Повторите пароль</label>
         <input
+          aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined}
           aria-invalid={Boolean(errors.confirmPassword)}
           autoComplete="new-password"
           id="confirmPassword"
@@ -132,7 +136,7 @@ export function RegisterForm() {
           })}
         />
         {errors.confirmPassword ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="register-confirm-password-error" role="alert">
             {errors.confirmPassword.message}
           </p>
         ) : null}

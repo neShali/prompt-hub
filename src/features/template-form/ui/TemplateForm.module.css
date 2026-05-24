@@ -5,15 +5,17 @@
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 18px;
-  align-items: start;
 }
 
 .mainFields,
 .sidePanel {
   display: grid;
   gap: 18px;
+}
+
+.sidePanel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .mainFields,
@@ -105,7 +107,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
   gap: 14px;
 }
 
@@ -120,34 +122,6 @@
   color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 700;
-}
-
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 2px 0 4px;
-}
-
-.toolbar button {
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 8px 11px;
-  color: var(--color-accent-dark);
-  background: rgba(255, 255, 255, 0.72);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.toolbar button:hover {
-  border-color: rgba(47, 111, 94, 0.32);
-  background: var(--color-accent-soft);
-}
-
-.promptTextarea {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  line-height: 1.6;
 }
 
 .checkbox {
@@ -173,7 +147,7 @@
 }
 
 .error {
-  color: #9a2f2f;
+  color: var(--color-danger);
 }
 
 .success {
@@ -216,8 +190,20 @@
   opacity: 0.48;
 }
 
+.editorSkeleton {
+  display: flex;
+  min-height: 420px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.62);
+  font-weight: 760;
+}
+
 @media (max-width: 980px) {
-  .grid {
+  .sidePanel {
     grid-template-columns: 1fr;
   }
 }

@@ -19,9 +19,14 @@ export default function RootLayout({ children }: TRootLayoutProps) {
   return (
     <html lang="ru">
       <body>
+        <a className="skipLink" href="#main-content">
+          Перейти к основному содержимому
+        </a>
         <div className="appShell">
           <Header />
-          <main className="mainContent">{children}</main>
+          <main className="mainContent" id="main-content" tabIndex={-1}>
+            {children}
+          </main>
           <Footer />
         </div>
       </body>

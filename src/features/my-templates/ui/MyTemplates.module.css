@@ -112,3 +112,51 @@
   content-visibility: auto;
   contain-intrinsic-size: 520px;
 }
+
+.promptPreview {
+  max-height: 170px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 14px;
+  color: var(--color-text);
+  background: var(--color-editor-bg);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.syntaxToken {
+  border-radius: 6px;
+  padding: 1px 3px;
+  font-weight: 750;
+}
+
+.heading {
+  color: var(--syntax-heading-text);
+  background: var(--syntax-heading-bg);
+}
+
+.separator,
+.flowArrow,
+.metaGlyph {
+  color: var(--syntax-flow-text);
+  background: var(--syntax-flow-bg);
+}
+
+.xmlTag,
+.variable,
+.decorator {
+  color: var(--syntax-structure-text);
+  background: var(--syntax-structure-bg);
+}
+
+.capsAccent,
+.inlineCode,
+.jsonPair {
+  color: var(--syntax-data-text);
+  background: var(--syntax-data-bg);
+}

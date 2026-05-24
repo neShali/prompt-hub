@@ -154,3 +154,35 @@
     flex-direction: column;
   }
 }
+
+.syntaxToken {
+  border-radius: 6px;
+  padding: 1px 3px;
+  font-weight: 750;
+}
+
+.heading {
+  color: #bceadd;
+  background: rgba(188, 234, 221, 0.12);
+}
+
+.separator,
+.flowArrow,
+.metaGlyph {
+  color: #ffd99f;
+  background: rgba(255, 217, 159, 0.12);
+}
+
+.xmlTag,
+.variable,
+.decorator {
+  color: #a9d1ff;
+  background: rgba(169, 209, 255, 0.12);
+}
+
+.capsAccent,
+.inlineCode,
+.jsonPair {
+  color: #ffb9b2;
+  background: rgba(255, 185, 178, 0.12);
+}

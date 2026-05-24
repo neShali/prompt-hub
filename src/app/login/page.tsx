@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { LoginForm } from '@/features/auth-form/ui/LoginForm';
 import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
 
@@ -21,7 +23,9 @@ export default function LoginPage() {
 
           <div className={styles.formCard}>
             <h2>Введите данные</h2>
-            <LoginForm />
+            <Suspense fallback={<p className={styles.formFallback}>Загружаем форму входа</p>}>
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
       </div>

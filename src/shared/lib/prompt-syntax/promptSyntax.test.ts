@@ -1,33 +1,63 @@
-import { getPromptSyntaxTypes, getVariablesFromPrompt } from './promptSyntax';
+import {
+  getPromptSyntaxSegments,
+  getPromptSyntaxTypes,
+  getVariablesFromPrompt,
+} from './promptSyntax';
 
-describe('prompt syntax helpers', () => {
-  const prompt = `## Role
-SYSTEM объясняет задачу → шаг за шагом
-—
+describe('promptSyntax', () => {
+  it('находит поддерживаемые элементы синтаксиса промпта', () => {
+    const text = `## Heading
 <context>{{goal}}</context>
-Используй ∈ и ⊕
-Ответ верни как "key": "value"
-Добавь ` + '`code`' + `
-+++Format`;
+NEXT → step
+"key": "value"
++++Format
+A ∩ B
+`;
 
-  it('находит поддерживаемые элементы синтаксиса', () => {
-    expect(getPromptSyntaxTypes(prompt)).toEqual(
+    expect(getPromptSyntaxTypes(text)).toEqual(
       expect.arrayContaining([
         'heading',
-        'separator',
-        'flowArrow',
         'xmlTag',
         'variable',
         'capsAccent',
-        'metaGlyph',
-        'inlineCode',
+        'flowArrow',
         'jsonPair',
         'decorator',
+        'metaGlyph',
       ])
     );
   });
 
-  it('извлекает переменные из двойных фигурных скобок', () => {
-    expect(getVariablesFromPrompt(prompt)).toEqual(['goal']);
+  it('извлекает переменные без фигурных скобок', () => {
+    expect(getVariablesFromPrompt('{{product}} для {{ audience }}')).toEqual([
+      'product',
+      'audience',
+    ]);
+  });
+
+
+
+  it('подсвечивает блок в тройных обратных кавычках целиком', () => {
+    const text = `\`\`\`
+{{diff}}
+\`\`\``;
+    const segments = getPromptSyntaxSegments(text);
+
+    expect(segments).toContainEqual({ type: 'inlineCode', value: text });
+  });
+
+
+  it('разбивает текст на сегменты для подсветки', () => {
+    const segments = getPromptSyntaxSegments('Текст {{goal}} → ответ');
+
+    expect(segments).toEqual(
+      expect.arrayContaining([
+        { value: 'Текст ' },
+        { type: 'variable', value: '{{goal}}' },
+        { value: ' ' },
+        { type: 'flowArrow', value: '→' },
+        { value: ' ответ' },
+      ])
+    );
   });
 });

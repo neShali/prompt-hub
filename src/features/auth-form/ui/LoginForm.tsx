@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -23,6 +23,7 @@ type TLoginTextField = keyof TLoginFormValues;
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [submitMessage, setSubmitMessage] = useState('');
   const [formSnapshot, setFormSnapshot] = useState<TLoginFormValues>(defaultValues);
 
@@ -53,7 +54,7 @@ export function LoginForm() {
 
     setCurrentUser({ email: values.email, authorizedAt: new Date().toISOString() });
 
-    const nextPath = consumeNextPath();
+    const nextPath = searchParams.get('next') ?? consumeNextPath();
 
     setSubmitMessage('Вход выполнен. Открываем личный кабинет.');
     router.push(nextPath ?? '/profile');
@@ -64,6 +65,7 @@ export function LoginForm() {
       <div className={styles.field}>
         <label htmlFor="email">Email</label>
         <input
+          aria-describedby={errors.email ? 'login-email-error' : undefined}
           aria-invalid={Boolean(errors.email)}
           autoComplete="email"
           id="email"
@@ -72,7 +74,7 @@ export function LoginForm() {
           {...register('email', { onChange: updateField('email') })}
         />
         {errors.email ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="login-email-error" role="alert">
             {errors.email.message}
           </p>
         ) : null}
@@ -81,6 +83,7 @@ export function LoginForm() {
       <div className={styles.field}>
         <label htmlFor="password">Пароль</label>
         <input
+          aria-describedby={errors.password ? 'login-password-error' : undefined}
           aria-invalid={Boolean(errors.password)}
           autoComplete="current-password"
           id="password"
@@ -89,7 +92,7 @@ export function LoginForm() {
           {...register('password', { onChange: updateField('password') })}
         />
         {errors.password ? (
-          <p className={styles.error} role="alert">
+          <p className={styles.error} id="login-password-error" role="alert">
             {errors.password.message}
           </p>
         ) : null}

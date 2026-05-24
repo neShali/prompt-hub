@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { getCurrentUser, setNextPath } from '@/features/auth-form/model/session';
@@ -14,7 +14,6 @@ type TAuthGuardProps = {
 
 export function AuthGuard({ children }: TAuthGuardProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isAllowed, setIsAllowed] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
@@ -25,13 +24,12 @@ export function AuthGuard({ children }: TAuthGuardProps) {
       setNextPath(pathname);
       setIsAllowed(false);
       setIsChecked(true);
-      router.replace('/login');
       return;
     }
 
     setIsAllowed(true);
     setIsChecked(true);
-  }, [pathname, router]);
+  }, [pathname]);
 
   if (!isChecked) {
     return (

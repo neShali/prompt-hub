@@ -1,8 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { PromptCard } from '@/entities/prompt/ui/PromptCard';
 import { useDebouncedValue } from '@/shared/lib/debounce/useDebouncedValue';
@@ -14,7 +20,13 @@ import styles from './PromptSearchPage.module.css';
 
 const MIN_QUERY_LENGTH = 3;
 
-const createSearchUrl = ({ query, category }: { query: string; category: string }) => {
+const createSearchUrl = ({
+  query,
+  category,
+}: {
+  query: string;
+  category: string;
+}) => {
   const params = new URLSearchParams();
   const normalizedQuery = query.trim();
 
@@ -35,6 +47,8 @@ export function PromptSearchPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+  const skipNextUrlSyncRef = useRef(false);
 
   const urlQuery = searchParams.get('q') ?? '';
   const urlCategory = searchParams.get('category') ?? '';
@@ -49,61 +63,66 @@ export function PromptSearchPage() {
 
   const debouncedQuery = useDebouncedValue(query, 450);
   const debouncedCategory = useDebouncedValue(category, 250);
+  const normalizedQuery = query.trim();
+  const normalizedDebouncedQuery = debouncedQuery.trim();
 
-  const queryIsTooShort = query.trim().length > 0 && query.trim().length < MIN_QUERY_LENGTH;
-  const hasSearchParams = Boolean(urlQuery || urlCategory);
+  const queryIsTooShort =
+    normalizedQuery.length > 0 && normalizedQuery.length < MIN_QUERY_LENGTH;
+  const debouncedQueryIsTooShort =
+    normalizedDebouncedQuery.length > 0 &&
+    normalizedDebouncedQuery.length < MIN_QUERY_LENGTH;
+  const hasActiveSearch = Boolean(
+    debouncedCategory || normalizedDebouncedQuery.length >= MIN_QUERY_LENGTH,
+  );
 
   useEffect(() => {
-    setQuery(urlQuery);
-    setCategory(urlCategory);
-  }, [urlQuery, urlCategory]);
-
-  useEffect(() => {
-    const normalizedQuery = debouncedQuery.trim();
-
-    const currentUrl = searchParams.toString() ? `${pathname}?${searchParams}` : pathname;
-
-    if (normalizedQuery.length > 0 && normalizedQuery.length < MIN_QUERY_LENGTH) {
-      const params = new URLSearchParams();
-
-      if (debouncedCategory) {
-        params.set('category', debouncedCategory);
-      }
-
-      const nextUrl = params.toString() ? `/search?${params.toString()}` : '/search';
-
-      setSuggestions([]);
-
-      if (nextUrl !== currentUrl) {
-        router.replace(nextUrl, { scroll: false });
-      }
-
+    if (skipNextUrlSyncRef.current) {
+      skipNextUrlSyncRef.current = false;
       return;
     }
 
+    setQuery(urlQuery);
+    setCategory(urlCategory);
+  }, [urlCategory, urlQuery]);
+
+  useEffect(() => {
+    if (debouncedQueryIsTooShort) {
+      setSuggestions([]);
+      return;
+    }
+
+    const currentUrl = searchParamsString
+      ? `${pathname}?${searchParamsString}`
+      : pathname;
     const nextUrl = createSearchUrl({
       query: debouncedQuery,
       category: debouncedCategory,
     });
 
     if (nextUrl !== currentUrl) {
+      skipNextUrlSyncRef.current = true;
       router.replace(nextUrl, { scroll: false });
     }
-  }, [debouncedCategory, debouncedQuery, pathname, router, searchParams]);
+  }, [
+    debouncedCategory,
+    debouncedQuery,
+    debouncedQueryIsTooShort,
+    pathname,
+    router,
+    searchParamsString,
+  ]);
 
   useEffect(() => {
-    const normalizedQuery = urlQuery.trim();
-
-    if (!urlCategory && normalizedQuery.length === 0) {
+    if (!debouncedCategory && normalizedDebouncedQuery.length === 0) {
       setData(null);
       setError('');
       setIsLoading(false);
       return;
     }
 
-    if (normalizedQuery.length > 0 && normalizedQuery.length < MIN_QUERY_LENGTH) {
+    if (debouncedQueryIsTooShort) {
       setData(null);
-      setError('Уточните запрос, чтобы мы подобрали более точные результаты.');
+      setError('');
       setIsLoading(false);
       return;
     }
@@ -111,8 +130,8 @@ export function PromptSearchPage() {
     const controller = new AbortController();
     const params = new URLSearchParams();
 
-    if (normalizedQuery) params.set('q', normalizedQuery);
-    if (urlCategory) params.set('category', urlCategory);
+    if (normalizedDebouncedQuery) params.set('q', normalizedDebouncedQuery);
+    if (debouncedCategory) params.set('category', debouncedCategory);
 
     setIsLoading(true);
     setError('');
@@ -133,7 +152,10 @@ export function PromptSearchPage() {
         setData(responseData);
       })
       .catch((requestError: unknown) => {
-        if (requestError instanceof DOMException && requestError.name === 'AbortError') {
+        if (
+          requestError instanceof DOMException &&
+          requestError.name === 'AbortError'
+        ) {
           return;
         }
 
@@ -141,7 +163,7 @@ export function PromptSearchPage() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : 'Не удалось выполнить поиск. Попробуйте ещё раз.'
+            : 'Не удалось выполнить поиск. Попробуйте ещё раз.',
         );
       })
       .finally(() => {
@@ -153,19 +175,20 @@ export function PromptSearchPage() {
     return () => {
       controller.abort();
     };
-  }, [urlCategory, urlQuery]);
+  }, [debouncedCategory, debouncedQueryIsTooShort, normalizedDebouncedQuery]);
 
   useEffect(() => {
-    const normalizedQuery = debouncedQuery.trim();
-
-    if (normalizedQuery.length < MIN_QUERY_LENGTH) {
+    if (normalizedDebouncedQuery.length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
       setIsSuggestionsLoading(false);
       return;
     }
 
     const controller = new AbortController();
-    const params = new URLSearchParams({ q: normalizedQuery, mode: 'suggest' });
+    const params = new URLSearchParams({
+      q: normalizedDebouncedQuery,
+      mode: 'suggest',
+    });
 
     setIsSuggestionsLoading(true);
 
@@ -178,7 +201,10 @@ export function PromptSearchPage() {
         setSuggestions(responseData.suggestions);
       })
       .catch((requestError: unknown) => {
-        if (requestError instanceof DOMException && requestError.name === 'AbortError') {
+        if (
+          requestError instanceof DOMException &&
+          requestError.name === 'AbortError'
+        ) {
           return;
         }
 
@@ -193,42 +219,74 @@ export function PromptSearchPage() {
     return () => {
       controller.abort();
     };
-  }, [debouncedQuery]);
+  }, [normalizedDebouncedQuery]);
 
   const resultTitle = useMemo(() => {
-    if (!hasSearchParams) return 'Начните поиск';
-    if (isLoading) return 'Ищем подходящие шаблоны';
+    if (queryIsTooShort) return 'Продолжайте вводить запрос';
+    if (!hasActiveSearch) return 'Начните поиск';
+    if (isLoading && !data) return 'Ищем подходящие шаблоны';
     if (error) return 'Поиск не выполнен';
     if (!data || data.total === 0) return 'Ничего не найдено';
 
     return `Найдено шаблонов: ${data.total}`;
-  }, [data, error, hasSearchParams, isLoading]);
+  }, [data, error, hasActiveSearch, isLoading, queryIsTooShort]);
 
   const renderedResults = useMemo(() => {
     if (!data?.results.length) return null;
 
-    return data.results.map((prompt) => <PromptCard key={prompt.id} prompt={prompt} />);
+    return data.results.map((prompt) => (
+      <PromptCard key={prompt.id} prompt={prompt} />
+    ));
   }, [data]);
+
+  const shouldShowInitialState = !hasActiveSearch && !queryIsTooShort;
+  const shouldShowShortQueryState = queryIsTooShort;
+  const shouldShowInitialLoading = isLoading && !data;
+  const shouldShowError = Boolean(error);
+  const shouldShowEmptyResults =
+    !isLoading &&
+    !error &&
+    hasActiveSearch &&
+    !queryIsTooShort &&
+    data?.total === 0;
+  const shouldShowResults =
+    !queryIsTooShort && !error && Boolean(renderedResults);
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (query.trim().length > 0 && query.trim().length < MIN_QUERY_LENGTH) {
+      if (
+        normalizedQuery.length > 0 &&
+        normalizedQuery.length < MIN_QUERY_LENGTH
+      ) {
         return;
       }
 
-      router.push(createSearchUrl({ query, category }));
+      const nextUrl = createSearchUrl({ query, category });
+      skipNextUrlSyncRef.current = true;
+      router.push(nextUrl);
     },
-    [category, query, router]
+    [category, normalizedQuery.length, query, router],
   );
+
+  const handleReset = useCallback(() => {
+    setQuery('');
+    setCategory('');
+    setData(null);
+    setError('');
+    setSuggestions([]);
+    skipNextUrlSyncRef.current = true;
+    router.replace('/search', { scroll: false });
+  }, [router]);
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
       setQuery(suggestion);
+      skipNextUrlSyncRef.current = true;
       router.push(createSearchUrl({ query: suggestion, category }));
     },
-    [category, router]
+    [category, router],
   );
 
   return (
@@ -240,12 +298,17 @@ export function PromptSearchPage() {
           <span className="badge">Поиск по каталогу</span>
           <h1>Поиск по шаблонам промптов</h1>
           <p>
-            Найдите подходящий шаблон по задаче, теме или категории. Подсказки помогут
-            быстрее перейти к нужному результату.
+            Найдите подходящий шаблон по задаче, теме или категории. Подсказки
+            помогут быстрее перейти к нужному результату.
           </p>
         </div>
 
-        <form className={styles.searchForm} method="get" action="/search" onSubmit={handleSubmit}>
+        <form
+          className={styles.searchForm}
+          method="get"
+          action="/search"
+          onSubmit={handleSubmit}
+        >
           <div className={styles.searchField}>
             <label htmlFor="q">Поисковый запрос</label>
             <input
@@ -258,29 +321,30 @@ export function PromptSearchPage() {
               onChange={(event) => setQuery(event.target.value)}
             />
 
-            {queryIsTooShort ? (
-              <p className={styles.hint} role="status">
-                Продолжайте вводить запрос, чтобы получить точные результаты.
-              </p>
-            ) : null}
+            <div className={styles.helperSlot} aria-live="polite">
+              {queryIsTooShort ? (
+                <p className={styles.hint}>Введите ещё несколько символов.</p>
+              ) : null}
+            </div>
 
-            {query.trim().length >= MIN_QUERY_LENGTH ? (
-              <div className={styles.suggestions} aria-label="Поисковые подсказки">
-                {isSuggestionsLoading ? <span>Загружаем подсказки</span> : null}
-
-                {!isSuggestionsLoading && suggestions.length > 0
-                  ? suggestions.map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        {suggestion}
-                      </button>
-                    ))
-                  : null}
-              </div>
-            ) : null}
+            <div
+              className={styles.suggestions}
+              aria-label="Поисковые подсказки"
+            >
+              {normalizedQuery.length >= MIN_QUERY_LENGTH &&
+              !isSuggestionsLoading &&
+              suggestions.length > 0
+                ? suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))
+                : null}
+            </div>
           </div>
 
           <div className={styles.categoryField}>
@@ -300,40 +364,56 @@ export function PromptSearchPage() {
             </select>
           </div>
 
-          <button className={styles.submitButton} disabled={queryIsTooShort} type="submit">
+          <button
+            className={styles.submitButton}
+            disabled={queryIsTooShort}
+            type="submit"
+          >
             Найти
           </button>
         </form>
 
         <section className={styles.results} aria-live="polite">
           <div className={styles.resultsHeader}>
-            <h2>{resultTitle}</h2>
-            {hasSearchParams ? (
-              <Link href="/search">Сбросить поиск</Link>
+            <div>
+              <h2>{resultTitle}</h2>
+              {isLoading && data ? (
+                <span className={styles.loadingBadge}>Обновляем</span>
+              ) : null}
+            </div>
+            {hasActiveSearch || query || category ? (
+              <button
+                className={styles.resetButton}
+                type="button"
+                onClick={handleReset}
+              >
+                Сбросить поиск
+              </button>
             ) : null}
           </div>
 
-          {!hasSearchParams ? (
+          {shouldShowShortQueryState ? (
+            <div className={styles.emptyState}>
+              <p>Продолжайте вводить запрос, чтобы увидеть результаты.</p>
+            </div>
+          ) : shouldShowInitialState ? (
             <div className={styles.emptyState}>
               <p>
-                Можно искать по названию, описанию, тегам, переменным и тексту промпта.
+                Можно искать по названию, описанию, тегам, переменным и тексту
+                промпта.
               </p>
             </div>
-          ) : null}
-
-          {isLoading ? (
+          ) : shouldShowInitialLoading ? (
             <div className={styles.stateCard}>Загрузка результатов</div>
-          ) : null}
-
-          {error ? <div className={styles.errorCard}>{error}</div> : null}
-
-          {!isLoading && !error && data?.total === 0 ? (
+          ) : shouldShowError ? (
+            <div className={styles.errorCard}>{error}</div>
+          ) : shouldShowEmptyResults ? (
             <div className={styles.emptyState}>
               <p>Попробуйте изменить запрос или выбрать другую категорию.</p>
             </div>
           ) : null}
 
-          {!isLoading && !error && renderedResults ? (
+          {shouldShowResults ? (
             <div className={styles.grid}>{renderedResults}</div>
           ) : null}
         </section>

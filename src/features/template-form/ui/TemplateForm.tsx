@@ -119,6 +119,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
           <div className={styles.field}>
             <label htmlFor="title">Название шаблона</label>
             <input
+              aria-describedby={errors.title ? 'template-title-error' : undefined}
               aria-invalid={Boolean(errors.title)}
               id="title"
               placeholder="Например: Контент-план для запуска продукта"
@@ -126,7 +127,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               {...register('title', { onChange: updateTextField('title') })}
             />
             {errors.title ? (
-              <p className={styles.error} role="alert">
+              <p className={styles.error} id="template-title-error" role="alert">
                 {errors.title.message}
               </p>
             ) : null}
@@ -135,6 +136,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
           <div className={styles.field}>
             <label htmlFor="description">Описание</label>
             <textarea
+              aria-describedby={errors.description ? 'template-description-error' : undefined}
               aria-invalid={Boolean(errors.description)}
               id="description"
               placeholder="Коротко объясните, для какой задачи подходит шаблон"
@@ -144,7 +146,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
               })}
             />
             {errors.description ? (
-              <p className={styles.error} role="alert">
+              <p className={styles.error} id="template-description-error" role="alert">
                 {errors.description.message}
               </p>
             ) : null}
@@ -154,6 +156,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
             <div className={styles.field}>
               <label htmlFor="category">Категория</label>
               <select
+                aria-describedby={errors.category ? 'template-category-error' : undefined}
                 aria-invalid={Boolean(errors.category)}
                 id="category"
                 {...register('category', { onChange: updateTextField('category') })}
@@ -165,7 +168,7 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
                 ))}
               </select>
               {errors.category ? (
-                <p className={styles.error} role="alert">
+                <p className={styles.error} id="template-category-error" role="alert">
                   {errors.category.message}
                 </p>
               ) : null}
