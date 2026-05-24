@@ -1,54 +1,69 @@
-import { TTemplateFormValues } from './schema';
+import { getCurrentUser, normalizeUserEmail } from '@/features/auth-form/model/session';
+import { TTemplateFormValues } from '@/features/template-form/model/schema';
 
 export type TSavedTemplate = TTemplateFormValues & {
   id: string;
+  ownerEmail: string;
   updatedAt: string;
 };
 
-const STORAGE_KEY = 'prompt-hub:templates';
+const STORAGE_KEY_PREFIX = 'prompt-hub:templates';
 
 const canUseStorage = () => typeof window !== 'undefined' && Boolean(window.localStorage);
 
+const getCurrentUserEmail = () => {
+  const user = getCurrentUser();
+
+  return user ? normalizeUserEmail(user.email) : null;
+};
+
+const getStorageKey = () => {
+  const email = getCurrentUserEmail();
+
+  return email ? `${STORAGE_KEY_PREFIX}:${email}` : null;
+};
+
 export const getSavedTemplates = (): TSavedTemplate[] => {
-  if (!canUseStorage()) return [];
+  const storageKey = getStorageKey();
 
-  const rawValue = window.localStorage.getItem(STORAGE_KEY);
-
-  if (!rawValue) return [];
+  if (!canUseStorage() || !storageKey) return [];
 
   try {
-    const parsedValue = JSON.parse(rawValue);
+    const rawValue = window.localStorage.getItem(storageKey);
 
-    if (Array.isArray(parsedValue)) {
-      return parsedValue as TSavedTemplate[];
-    }
-
-    return [];
+    return rawValue ? (JSON.parse(rawValue) as TSavedTemplate[]) : [];
   } catch {
     return [];
   }
 };
 
-export const saveTemplate = (
-  values: TTemplateFormValues,
-  templateId?: string
-): TSavedTemplate => {
+export const getSavedTemplateById = (id: string) =>
+  getSavedTemplates().find((template) => template.id === id) ?? null;
+
+export const saveTemplate = (values: TTemplateFormValues, templateId?: string) => {
+  const storageKey = getStorageKey();
+  const ownerEmail = getCurrentUserEmail();
+
+  if (!canUseStorage() || !storageKey || !ownerEmail) {
+    throw new Error('Для сохранения шаблона нужно войти в аккаунт.');
+  }
+
   const templates = getSavedTemplates();
+  const now = new Date().toISOString();
   const id = templateId ?? `template-${Date.now()}`;
+
   const nextTemplate: TSavedTemplate = {
     ...values,
     id,
-    updatedAt: new Date().toISOString(),
+    ownerEmail,
+    updatedAt: now,
   };
 
-  const nextTemplates = templates.some((template) => template.id === id)
-    ? templates.map((template) => (template.id === id ? nextTemplate : template))
+  const nextTemplates = templateId
+    ? templates.map((template) => (template.id === templateId ? nextTemplate : template))
     : [nextTemplate, ...templates];
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextTemplates));
+  window.localStorage.setItem(storageKey, JSON.stringify(nextTemplates));
 
   return nextTemplate;
 };
-
-export const getSavedTemplateById = (id: string) =>
-  getSavedTemplates().find((template) => template.id === id);

@@ -1,10 +1,41 @@
-import Link from 'next/link';
+'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import {
+  AUTH_CHANGED_EVENT,
+  clearCurrentUser,
+  getCurrentUser,
+  TAuthUser,
+} from '@/features/auth-form/model/session';
 import { mainNavigation } from '@/shared/config/navigation';
 
 import styles from './Header.module.css';
 
 export function Header() {
+  const router = useRouter();
+  const [user, setUser] = useState<TAuthUser | null>(null);
+
+  useEffect(() => {
+    const syncUser = () => setUser(getCurrentUser());
+
+    syncUser();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncUser);
+    window.addEventListener('storage', syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncUser);
+      window.removeEventListener('storage', syncUser);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    clearCurrentUser();
+    router.push('/login');
+  };
+
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
@@ -22,9 +53,21 @@ export function Header() {
         </nav>
 
         <div className={styles.actions}>
-          <Link className={styles.loginLink} href="/login">
-            Войти
-          </Link>
+          {user ? (
+            <>
+              <Link className={styles.loginLink} href="/profile">
+                Кабинет
+              </Link>
+              <button className={styles.logoutButton} type="button" onClick={handleLogout}>
+                Выйти
+              </button>
+            </>
+          ) : (
+            <Link className={styles.loginLink} href="/login">
+              Войти
+            </Link>
+          )}
+
           <Link className={styles.createLink} href="/profile/templates/new">
             Создать шаблон
           </Link>

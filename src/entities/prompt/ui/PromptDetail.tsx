@@ -60,6 +60,10 @@ export function PromptDetail({ prompt }: TPromptDetailProps) {
           <aside className={styles.sidebar}>
             <div className={styles.sideCard}>
               <h2>Переменные</h2>
+              <p className={styles.sideText}>
+                Это поля, которые можно заменить перед использованием шаблона.
+                Двойные фигурные скобки помогают быстро найти такие места в тексте.
+              </p>
               <ul>
                 {prompt.variables.map((variable) => (
                   <li key={variable}>{`{{${variable}}}`}</li>

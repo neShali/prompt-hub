@@ -103,7 +103,7 @@ export function PromptSearchPage() {
 
     if (normalizedQuery.length > 0 && normalizedQuery.length < MIN_QUERY_LENGTH) {
       setData(null);
-      setError('Введите минимум 3 символа для поиска.');
+      setError('Уточните запрос, чтобы мы подобрали более точные результаты.');
       setIsLoading(false);
       return;
     }
@@ -225,11 +225,11 @@ export function PromptSearchPage() {
         <Breadcrumbs />
 
         <div className={styles.hero}>
-          <span className="badge">GET-поиск с debounce</span>
+          <span className="badge">Поиск по каталогу</span>
           <h1>Поиск по шаблонам промптов</h1>
           <p>
-            Введите минимум 3 символа. Запрос и выбранная категория сохраняются в
-            адресной строке, поэтому результат восстанавливается после перезагрузки.
+            Найдите подходящий шаблон по задаче, теме или категории. Подсказки помогут
+            быстрее перейти к нужному результату.
           </p>
         </div>
 
@@ -248,7 +248,7 @@ export function PromptSearchPage() {
 
             {queryIsTooShort ? (
               <p className={styles.hint} role="status">
-                Введите минимум 3 символа для отправки запроса.
+                Продолжайте вводить запрос, чтобы получить точные результаты.
               </p>
             ) : null}
 
