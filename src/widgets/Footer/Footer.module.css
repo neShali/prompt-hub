@@ -1,0 +1,50 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 34px 0;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.description {
+  max-width: 460px;
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 18px;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.nav a:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 760px) {
+  .inner {
+    flex-direction: column;
+  }
+
+  .nav {
+    justify-content: flex-start;
+  }
+}
