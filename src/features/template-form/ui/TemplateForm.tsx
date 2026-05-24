@@ -1,12 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useState } from 'react';
+import { type ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-
-import { PromptEditor } from '@/features/prompt-editor/ui/PromptEditor';
 import { saveTemplate } from '@/features/template-form/model/storage';
 import {
   templateFormSchema,
@@ -15,6 +14,17 @@ import {
 import { promptCategories } from '@/shared/mock/prompts';
 
 import styles from './TemplateForm.module.css';
+
+const PromptEditor = dynamic(
+  () => import('@/features/prompt-editor/ui/PromptEditor').then((mod) => mod.PromptEditor),
+  {
+    loading: () => (
+      <div className={styles.editorSkeleton} aria-live="polite">
+        Загружаем редактор промпта
+      </div>
+    ),
+  }
+);
 
 const defaultValues: TTemplateFormValues = {
   title: '',
@@ -48,7 +58,6 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<TTemplateFormValues>({
     resolver: zodResolver(templateFormSchema),
@@ -56,11 +65,12 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
     defaultValues: initialValues ?? defaultValues,
   });
 
-  const formValues = watch();
-  const promptText = formValues.promptText;
-  const isFormValid = templateFormSchema.safeParse(formSnapshot).success;
+  const isFormValid = useMemo(
+    () => templateFormSchema.safeParse(formSnapshot).success,
+    [formSnapshot]
+  );
 
-  const updateTextField =
+  const updateTextField = useCallback(
     (field: TTemplateTextField) => (event: TTemplateFieldEvent) => {
       const value = event.target.value;
 
@@ -68,23 +78,25 @@ export function TemplateForm({ mode, templateId, initialValues }: TTemplateFormP
         ...currentValues,
         [field]: value,
       }));
-    };
+    },
+    []
+  );
 
-  const updatePublicState = (event: ChangeEvent<HTMLInputElement>) => {
+  const updatePublicState = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const isPublic = event.target.checked;
 
     setFormSnapshot((currentValues) => ({
       ...currentValues,
       isPublic,
     }));
-  };
+  }, []);
 
-  const updatePromptText = (value: string) => {
+  const updatePromptText = useCallback((value: string) => {
     setFormSnapshot((currentValues) => ({
       ...currentValues,
       promptText: value,
     }));
-  };
+  }, []);
 
   const onSubmit = async (values: TTemplateFormValues) => {
     setSubmitMessage('');

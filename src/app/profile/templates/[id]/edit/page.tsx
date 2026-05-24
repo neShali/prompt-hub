@@ -1,7 +1,24 @@
-import { EditTemplateFormLoader } from '@/features/template-form/ui/EditTemplateFormLoader';
+import dynamic from 'next/dynamic';
+
+import { LoadingState } from '@/shared/ui/LoadingState/LoadingState';
 import { Breadcrumbs } from '@/widgets/Breadcrumbs/Breadcrumbs';
 
 import styles from '../../templates-page.module.css';
+
+const EditTemplateFormLoader = dynamic(
+  () =>
+    import('@/features/template-form/ui/EditTemplateFormLoader').then(
+      (mod) => mod.EditTemplateFormLoader
+    ),
+  {
+    loading: () => (
+      <LoadingState
+        title="Открываем шаблон"
+        description="Загружаем сохранённые данные и форму редактирования."
+      />
+    ),
+  }
+);
 
 type TEditTemplatePageProps = {
   params: Promise<{

@@ -256,3 +256,50 @@ npm run test:e2e
 | ДЗ 1 | Информационная архитектура, страницы, навигация, breadcrumbs, sitemap, robots | `README.md`, `src/app`, `src/widgets` |
 | ДЗ 2 | Формы, валидация, поиск, подсказки, URL-параметры, mock API | `src/features/auth-form`, `src/features/template-form`, `src/features/prompt-search`, `src/app/api` |
 | ДЗ 3 | Unit, integration и E2E-тесты, редактор промптов, guard личного кабинета | `src/**/*.test.tsx`, `src/**/*.test.ts`, `tests/e2e`, `src/features/prompt-editor`, `src/features/auth-form/ui/AuthGuard.tsx` |
+| ДЗ 4 | Динамические импорты, мемоизация, оптимизация списков, подготовка к Lighthouse-аудиту | `src/app/catalog/page.tsx`, `src/app/profile/templates/new/page.tsx`, `src/features/prompt-catalog`, `src/entities/prompt`, `docs/lighthouse` |
+
+## Производительность
+
+В проект добавлены базовые оптимизации клиентской части:
+
+- тяжёлые клиентские разделы подключаются через `next/dynamic`;
+- каталог, поиск, список шаблонов, создание и редактирование шаблона вынесены в отдельные чанки;
+- редактор промптов загружается отдельно от основной формы;
+- карточка промпта обёрнута в `React.memo`;
+- редактор промптов обёрнут в `React.memo`;
+- вычисление валидности формы выполняется через `useMemo`;
+- обработчики формы и фильтров стабилизированы через `useCallback`;
+- списки карточек мемоизированы через `useMemo`;
+- для длинных списков добавлен `content-visibility`;
+- CSS разделён по CSS Modules, глобальные стили оставлены минимальными;
+- добавлены loading-состояния для динамически загружаемых страниц.
+
+## Lighthouse-аудит
+
+Рекомендуемые страницы для проверки:
+
+```txt
+/catalog
+/profile/templates/new
+/profile/templates/[id]/edit
+```
+
+Перед аудитом нужно собрать production-версию проекта:
+
+```bash
+npm run build
+npm run start
+```
+
+После этого можно запустить Lighthouse через Chrome DevTools или через CLI:
+
+```bash
+npx lighthouse http://localhost:3000/catalog --view
+npx lighthouse http://localhost:3000/profile/templates/new --view
+```
+
+Отчёты можно сохранить в папку:
+
+```txt
+docs/lighthouse/
+```

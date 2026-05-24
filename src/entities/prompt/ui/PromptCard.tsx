@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { memo } from 'react';
 
 import { TPrompt } from '@/shared/types/prompt';
 
@@ -8,7 +9,7 @@ type TPromptCardProps = {
   prompt: TPrompt;
 };
 
-export function PromptCard({ prompt }: TPromptCardProps) {
+export const PromptCard = memo(function PromptCard({ prompt }: TPromptCardProps) {
   return (
     <Link
       aria-label={`Открыть шаблон: ${prompt.title}`}
@@ -38,4 +39,4 @@ export function PromptCard({ prompt }: TPromptCardProps) {
       </article>
     </Link>
   );
-}
+});

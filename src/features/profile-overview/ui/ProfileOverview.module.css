@@ -13,8 +13,9 @@
 }
 
 .hero h1 {
+  max-width: 760px;
   margin: 20px 0 0;
-  font-size: clamp(42px, 7vw, 76px);
+  font-size: clamp(42px, 6vw, 72px);
   line-height: 0.96;
   letter-spacing: -0.075em;
 }
@@ -27,8 +28,24 @@
   line-height: 1.65;
 }
 
+.userEmail {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 16px !important;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  overflow-wrap: anywhere;
+  color: var(--color-accent-dark) !important;
+  background: rgba(255, 255, 255, 0.68);
+  font-size: 15px !important;
+  font-weight: 750;
+  line-height: 1.35 !important;
+}
+
 .stats {
   display: grid;
+  min-width: 0;
   gap: 12px;
 }
 
@@ -124,5 +141,9 @@
 @media (max-width: 560px) {
   .hero {
     padding: 28px;
+  }
+
+  .stats strong {
+    font-size: 32px;
   }
 }

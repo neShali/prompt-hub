@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { PromptCard } from '@/entities/prompt/ui/PromptCard';
 import { promptCategories, prompts } from '@/shared/mock/prompts';
@@ -22,6 +22,19 @@ export function PromptCatalog() {
 
     return prompts.filter((prompt) => prompt.category === selectedCategory);
   }, [selectedCategory]);
+
+  const handleAllClick = useCallback(() => {
+    setSelectedCategory('all');
+  }, []);
+
+  const handleCategoryClick = useCallback((category: TPromptCategory) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const renderedPrompts = useMemo(
+    () => filteredPrompts.map((prompt) => <PromptCard key={prompt.id} prompt={prompt} />),
+    [filteredPrompts]
+  );
 
   return (
     <section className="pageSection">
@@ -48,7 +61,7 @@ export function PromptCatalog() {
           <button
             className={selectedCategory === 'all' ? styles.active : undefined}
             type="button"
-            onClick={() => setSelectedCategory('all')}
+            onClick={handleAllClick}
           >
             Все
           </button>
@@ -57,18 +70,14 @@ export function PromptCatalog() {
               className={selectedCategory === category.value ? styles.active : undefined}
               key={category.value}
               type="button"
-              onClick={() => setSelectedCategory(category.value)}
+              onClick={() => handleCategoryClick(category.value)}
             >
               {category.label}
             </button>
           ))}
         </div>
 
-        <div className={styles.grid}>
-          {filteredPrompts.map((prompt) => (
-            <PromptCard key={prompt.id} prompt={prompt} />
-          ))}
-        </div>
+        <div className={styles.grid}>{renderedPrompts}</div>
       </div>
     </section>
   );

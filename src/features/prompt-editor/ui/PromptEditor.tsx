@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 
 import styles from './PromptEditor.module.css';
 
@@ -21,7 +21,13 @@ const snippets = [
   { label: 'Декоратор', value: '+++Format' },
 ] as const;
 
-export function PromptEditor({ id, label, value, error, onChange }: TPromptEditorProps) {
+export const PromptEditor = memo(function PromptEditor({
+  id,
+  label,
+  value,
+  error,
+  onChange,
+}: TPromptEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const nextCursorPositionRef = useRef<number | null>(null);
 
@@ -35,19 +41,22 @@ export function PromptEditor({ id, label, value, error, onChange }: TPromptEdito
     nextCursorPositionRef.current = null;
   }, [value]);
 
-  const insertSnippet = (snippet: string) => {
-    const textarea = textareaRef.current;
-    const selectionStart = textarea?.selectionStart ?? value.length;
-    const selectionEnd = textarea?.selectionEnd ?? value.length;
-    const beforeSelection = value.slice(0, selectionStart);
-    const afterSelection = value.slice(selectionEnd);
-    const needsSeparator = beforeSelection.length > 0 && !beforeSelection.endsWith('\n');
-    const prefix = needsSeparator ? '\n\n' : '';
-    const nextValue = `${beforeSelection}${prefix}${snippet}${afterSelection}`;
+  const insertSnippet = useCallback(
+    (snippet: string) => {
+      const textarea = textareaRef.current;
+      const selectionStart = textarea?.selectionStart ?? value.length;
+      const selectionEnd = textarea?.selectionEnd ?? value.length;
+      const beforeSelection = value.slice(0, selectionStart);
+      const afterSelection = value.slice(selectionEnd);
+      const needsSeparator = beforeSelection.length > 0 && !beforeSelection.endsWith('\n');
+      const prefix = needsSeparator ? '\n\n' : '';
+      const nextValue = `${beforeSelection}${prefix}${snippet}${afterSelection}`;
 
-    nextCursorPositionRef.current = selectionStart + prefix.length + snippet.length;
-    onChange(nextValue);
-  };
+      nextCursorPositionRef.current = selectionStart + prefix.length + snippet.length;
+      onChange(nextValue);
+    },
+    [onChange, value]
+  );
 
   return (
     <div className={styles.editor}>
@@ -84,4 +93,4 @@ export function PromptEditor({ id, label, value, error, onChange }: TPromptEdito
       ) : null}
     </div>
   );
-}
+});
